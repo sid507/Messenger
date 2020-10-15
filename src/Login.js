@@ -21,7 +21,7 @@ function Login() {
 
             </img>
             <h1> Welcome To WhatsAPP</h1>
-            <Button type="submit" onClick={signIn}>Sign In using Google </Button>
+            <Button type="submit" onClick={signIn}>Sign In with Google </Button>
 
         </div>
     )
