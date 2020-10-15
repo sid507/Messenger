@@ -83,7 +83,7 @@ function Chat() {
             <div class="chat__footer">
                 <MoodIcon />
                 <form>
-                    <input value={input} onChange={e => setinput(e.target.value)} placeholder="Type a message"></input>
+                    <input value={input} onChange={e => setinput(e.target.value)} placeholder="Enter the message..."></input>
                     <button onClick={sendMessage}>Send</button>
                 </form>
                 <SearchOutlined />
