@@ -10,44 +10,45 @@ import { useStateValue } from './StateProvider';
 import firebase from 'firebase';
 
 
+
 import './Chat.css';
 
 function Chat() {
-    const [input, setinput] = useState('');
-    const [seed, setseed] = useState('');
-    const { roomId } = useParams();
-    const [roomName, setRoomName] = useState("")
-    const [message, setMessage] = useState([])
-    const [{ user }, dispatch] = useStateValue();
+    const [input, setInput] = useState("");
+    const [seed, setSeed] = useState("");
+    const {roomId} = useParams();
+    const [roomName, setRoomName] = useState("");
+    const [message, setMessages] = useState([]);
+    const [{user}, dispatch] = useStateValue();
+    var CryptoJS = require("crypto-js");
+
+
+    useEffect(()=>{
+        if(roomId){
+            db.collection('rooms').doc(roomId).onSnapshot(snapshot => {
+                setRoomName(snapshot.data().name);
+            });
+
+            db.collection('rooms').doc(roomId).collection("messages").orderBy("timestamp","asc").onSnapshot(snapshot => {
+                setMessages(snapshot.docs.map(doc => doc.data()))
+            });
+
+        }
+    },[roomId])
 
     useEffect(() => {
-        console.log(roomId);
-        setseed(Math.floor(Math.random() * 5000));
-        if (roomId) {
-            db.collection("rooms").doc(roomId).onSnapshot(snapshot => {
-                console.log(snapshot.data())
-                setRoomName(snapshot.data().name)
-            })
-            db.collection("rooms").doc(roomId).collection("Messages").orderBy('timestamp', 'asc').onSnapshot((snapshot) => {
-                setMessage(snapshot.docs.map(doc => doc.data()))
-            })
-        }
-    }, [roomId])
-    // useEffect(() => {
-       
-    // }, [roomId])
+        setSeed(Math.floor(Math.random() * 5000));        
+    }, [roomId]);
 
     const sendMessage = (e) => {
         e.preventDefault();
-        // console.log(`u typed ${input}`);
-        db.collection('rooms').doc(roomId).collection('Messages').add(
-            {
-                name: user.displayName,
-                message: input,
-                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-            }
-        )
-        setinput('');
+        db.collection('rooms').doc(roomId).collection('messages').add({
+            message: CryptoJS.AES.encrypt(input.toString(),'secretKey').toString(),
+            name:CryptoJS.AES.encrypt(user.displayName.toString(),'secretKey').toString(), 
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+        })
+
+        setInput("");
     }
     return (
         <div className="chat">
@@ -75,7 +76,7 @@ function Chat() {
             </div>
             <div class="chat__body">
                 {message.map((m) => (
-                    <p class={`chat__message ${m.name === user.displayName && "chat__reciever"}`}><span className="chat__name">{m.name}</span>{m.message}
+                    <p class={`chat__message ${CryptoJS.AES.decrypt(m.name,'secretKey').toString(CryptoJS.enc.Utf8) === user.displayName && "chat__reciever"}`}><span className="chat__name">{CryptoJS.AES.decrypt(m.name,'secretKey').toString(CryptoJS.enc.Utf8)}</span>{CryptoJS.AES.decrypt(m.message,'secretKey').toString(CryptoJS.enc.Utf8)}
                         <span class="chat__timestamp">{new Date(m.timestamp?.toDate()).toUTCString()}</span></p>
                 ))}
 
@@ -85,7 +86,7 @@ function Chat() {
             <div class="chat__footer">
                 <MoodIcon />
                 <form>
-                    <input value={input} onChange={e => setinput(e.target.value)} placeholder="Type a message"></input>
+                    <input value={input} onChange={e => setInput(e.target.value)} placeholder="Type a message"></input>
                     <button onClick={sendMessage}>Send</button>
                 </form>
                 <SearchOutlined />

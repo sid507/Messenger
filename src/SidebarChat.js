@@ -8,11 +8,12 @@ import db from './firebase';
 import UseStateValue from './StateProvider';
 
 function SidebarChat({ id, name, addNewChat }) {
+    var CryptoJS = require("crypto-js");
     const [seed, setseed] = useState('');
     const [message, setmessage] = useState('');
     useEffect(() => {
         if (id) {
-            db.collection('rooms').doc(id).collection('Messages').orderBy('timestamp', 'desc').onSnapshot((snapshot) => setmessage(snapshot.docs.map((doc) => doc.data())))
+            db.collection('rooms').doc(id).collection('messages').orderBy('timestamp', 'desc').onSnapshot((snapshot) => setmessage(snapshot.docs.map((doc) => doc.data())))
         }
     })
     useEffect(() => {
@@ -32,7 +33,9 @@ function SidebarChat({ id, name, addNewChat }) {
                 <Avatar src={`https://avatars.dicebear.com/api/human/${seed}.svg`} />
                 <div class="sidebarchat__info">
                     <h2>{name}</h2>
-                    <p>{message[0]?.message}</p>
+                    {message[0]?.message?
+                    (<p>{  CryptoJS.AES.decrypt(message[0]?.message.toString(),'secretKey').toString(CryptoJS.enc.Utf8) }</p>):""
+                    }
                 </div>
             </div>
         </Link>
