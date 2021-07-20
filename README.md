@@ -6,7 +6,6 @@
 <h3>Material UI</h3>
 <h3>React Router</h3>
 <h3>React Context API</h3>
-<h3>Redux</h3>
 <h3>Google Authentication</h3>
 <h3>Encrypted Data</h3>
 
